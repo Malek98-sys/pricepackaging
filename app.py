@@ -5,15 +5,19 @@ import plotly.express as px
 from plotly import graph_objects as go
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingRegressor
-try:
-from xgboost import XGBRegressor
-_XGBOOST_AVAILABLE = True
-except ImportError:
-_XGBOOST_AVAILABLE = False
 import warnings
 import re
 import io as _io_mod
 import os as _os_cfg
+
+# Import optionnel de XGBoost. Si absent, bascule sur scikit-learn.
+_XGBOOST_AVAILABLE = False
+try:
+import xgboost as _xgb_mod
+XGBRegressor = _xgb_mod.XGBRegressor
+_XGBOOST_AVAILABLE = True
+except Exception:
+_XGBOOST_AVAILABLE = False
 
 # ── Lève la limite de taille d'upload (par défaut 200 Mo) à 5 Go.
 # On écrit la config AVANT que Streamlit n'initialise le serveur. Ainsi
