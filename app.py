@@ -10,18 +10,21 @@ import re
 import io as _io_mod
 import os as _os_cfg
 
-# Import optionnel de XGBoost. Si absent, bascule sur scikit-learn.
-_XGBOOST_AVAILABLE = False
+# Import optionnel de XGBoost (via une fonction pour eviter tout bloc try
+# multi-lignes au niveau module, fragile au copier-coller / upload).
+import importlib
+def _try_import_xgboost():
 try:
-import xgboost as _xgb_mod
-XGBRegressor = _xgb_mod.XGBRegressor
-_XGBOOST_AVAILABLE = True
+m = importlib.import_module("xgboost")
+return m.XGBRegressor, True
 except Exception:
-_XGBOOST_AVAILABLE = False
+return None, False
+XGBRegressor, _XGBOOST_AVAILABLE = _try_import_xgboost()
 
 # ── Lève la limite de taille d'upload (par défaut 200 Mo) à 5 Go.
 # On écrit la config AVANT que Streamlit n'initialise le serveur. Ainsi
 # aucun fichier annexe n'est nécessaire : le partage du seul app.py suffit.
+def _setup_upload_limit():
 try:
 _cfg_dir = _os_cfg.path.join(_os_cfg.path.expanduser("~"), ".streamlit")
 _os_cfg.makedirs(_cfg_dir, exist_ok=True)
@@ -36,8 +39,8 @@ with open(_cfg_path, "a", encoding="utf-8") as _f:
 _f.write("\n[server]\nmaxUploadSize = 5000\nmaxMessageSize = 5000\n")
 except Exception:
 pass
-# Variable d'environnement (prise en compte aussi par certains lancements)
 _os_cfg.environ.setdefault("STREAMLIT_SERVER_MAX_UPLOAD_SIZE", "5000")
+_setup_upload_limit()
 
 warnings.filterwarnings("ignore")
 
